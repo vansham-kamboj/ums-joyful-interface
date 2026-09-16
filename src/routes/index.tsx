@@ -2,9 +2,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Bell, BookOpen, CalendarDays, ChevronDown, CircleDollarSign, ClipboardCheck,
   GraduationCap, LayoutDashboard, Menu, MoreHorizontal, Plus, Search, Settings,
-  UserRound, Users, X, FileText, Clock3, Download, Filter, CheckCircle2,
+  Users, X, FileText, Clock3, Download, Filter, CheckCircle2,
 } from "lucide-react";
-import { useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useMemo, useState, type ComponentType } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -150,7 +150,7 @@ function Dashboard({ role }: { role: Role }) {
   </>;
 }
 
-function SectionHeading({ title, subtitle, action, onAction }: { title: string; subtitle: string; action?: string; onAction?: () => void }) {
+function SectionHeading({ title, subtitle, action, onAction }: { title: string; subtitle: string; action?: string | undefined; onAction?: (() => void) | undefined }) {
   return <div className="mb-4 flex flex-wrap items-end justify-between gap-3"><div><h1 className="font-display text-2xl font-bold">{title}</h1><p className="mt-1 text-sm text-muted-foreground">{subtitle}</p></div>{action && <button className="primary-button" onClick={onAction}><Plus className="size-4" />{action}</button>}</div>;
 }
 
