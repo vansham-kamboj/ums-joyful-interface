@@ -146,46 +146,51 @@ function AuthPage({ onEnter }: { onEnter: (email: string) => void }) {
   };
 
   return (
-    <main className="auth-shell min-h-screen font-body text-foreground">
-      <div className="ambient ambient-one" /><div className="ambient ambient-two" /><div className="ambient ambient-three" />
-      <section className="auth-story">
-        <div className="relative z-10 max-w-xl">
-          <div className="flex items-center gap-3"><div className="brand-mark">A</div><div><p className="font-display text-lg font-bold">Aurora UMS</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">Academy OS</p></div></div>
-          <div className="mt-16 sm:mt-24">
-            <span className="auth-kicker"><ShieldCheck className="size-4" /> A clearer school day</span>
-            <h1 className="mt-5 font-display text-4xl font-bold leading-tight sm:text-5xl">One calm place for your whole school.</h1>
-            <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">Attendance, classes, fees, results, and notices—organized for every school day.</p>
+    <main className="auth-shell font-body text-foreground">
+      <div className="auth-window">
+        <section className="auth-story">
+          <div className="auth-story-glow auth-story-glow-one" />
+          <div className="auth-story-glow auth-story-glow-two" />
+          <div className="relative z-10 flex h-full w-full flex-col justify-between">
+            <div>
+              <div className="flex items-center gap-3"><div className="auth-brand-mark">A</div><div><p className="font-display text-xl font-semibold">Aurora UMS</p><p className="mt-0.5 text-[10px] font-medium text-muted-foreground">ACADEMY OS</p></div></div>
+              <h1 className="mt-12 font-display text-4xl font-semibold leading-tight">Management<br />made simple.</h1>
+              <p className="mt-4 max-w-xs text-sm leading-6 text-muted-foreground">Your school day, organized in one secure and beautifully simple workspace.</p>
+            </div>
+            <div className="auth-quick-access">
+              <p className="text-[10px] font-semibold text-muted-foreground">QUICK ACCESS</p>
+              <div className="mt-3 space-y-2.5 text-xs"><p className="flex items-center gap-3"><span className="auth-dot auth-dot-blue" />admin@aurora.edu</p><p className="flex items-center gap-3"><span className="auth-dot auth-dot-teal" />Aurora@2026</p></div>
+            </div>
           </div>
-          <div className="mt-12 grid grid-cols-3 gap-3">
-            {[['1,284', 'Students'], ['64', 'Teachers'], ['94.2%', 'Attendance']].map(([value, label]) => <div className="auth-metric" key={label}><strong>{value}</strong><span>{label}</span></div>)}
-          </div>
-        </div>
-        <p className="relative z-10 text-xs text-muted-foreground">Aurora Academy · Academic year 2026–27</p>
-      </section>
+        </section>
 
-      <section className="auth-form-wrap">
-        <div className="w-full max-w-md">
-          <div className="mb-8 lg:hidden"><div className="flex items-center gap-3"><div className="brand-mark">A</div><p className="font-display text-lg font-bold">Aurora UMS</p></div></div>
-          <div className="mb-7">
-            <p className="text-sm font-semibold text-brand">{mode === "login" ? "Welcome back" : "Start your workspace"}</p>
-            <h2 className="mt-2 font-display text-3xl font-bold">{mode === "login" ? "Sign in to Aurora" : "Create your account"}</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{mode === "login" ? "Use your school-issued account to continue." : "Create an administrator demo account for your school."}</p>
-          </div>
+        <section className="auth-form-wrap">
+          <div className="w-full max-w-sm">
+            <div className="mb-7 flex items-center gap-3 md:hidden"><div className="auth-brand-mark">A</div><p className="font-display text-xl font-semibold">Aurora UMS</p></div>
+            <div className="mb-7">
+              <h2 className="font-display text-2xl font-semibold">{mode === "login" ? "Welcome back" : "Create your account"}</h2>
+              <p className="mt-2 text-sm font-medium text-muted-foreground">{mode === "login" ? "Enter your details to sign in to Aurora." : "Set up an administrator demo workspace."}</p>
+            </div>
 
-          <form onSubmit={submit} className="space-y-4" noValidate>
+            <div className="auth-segment" aria-label="Account action">
+              <button className={mode === "login" ? "auth-segment-active" : ""} onClick={() => changeMode("login")}>Sign in</button>
+              <button className={mode === "register" ? "auth-segment-active" : ""} onClick={() => changeMode("register")}>Create account</button>
+            </div>
+
+            <form onSubmit={submit} className="mt-7 space-y-4" noValidate>
             {mode === "register" && <div className="grid gap-4 sm:grid-cols-2"><AuthField label="Full name" name="fullName" placeholder="Vansham Kamboj" autoComplete="name" /><AuthField label="School name" name="schoolName" placeholder="Aurora Academy" autoComplete="organization" /></div>}
             <AuthField label="Email address" name="email" type="email" value={email} onChange={setEmail} placeholder="you@school.edu" autoComplete="email" icon={Mail} />
             <label className="block"><span className="mb-2 block text-xs font-semibold">Password</span><span className="auth-input-wrap"><LockKeyhole className="size-4 text-muted-foreground" /><input name="password" value={password} onChange={(event) => setPassword(event.target.value)} type={showPassword ? "text" : "password"} className="auth-input" placeholder="At least 8 characters" autoComplete={mode === "login" ? "current-password" : "new-password"} maxLength={72} /><button type="button" className="icon-button -mr-2" onClick={() => setShowPassword((shown) => !shown)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></span></label>
             {mode === "register" && <label className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"><input required type="checkbox" className="mt-1 accent-[var(--brand)]" />I agree to the school data and acceptable use terms.</label>}
             {error && <p role="alert" className="auth-error">{error}</p>}
-            <button className="primary-button auth-submit w-full" disabled={loading}>{loading ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}<ArrowRight className="size-4" /></button>
-          </form>
+              <button className="auth-submit w-full" disabled={loading}>{loading ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}<ArrowRight className="size-4" /></button>
+            </form>
 
-          {mode === "login" && <div className="demo-credentials"><div><p className="text-xs font-semibold">Demo account</p><p className="mt-1 text-xs text-muted-foreground">admin@aurora.edu · Aurora@2026</p></div><button className="secondary-button" onClick={() => { setEmail("admin@aurora.edu"); setPassword("Aurora@2026"); }}>Use demo</button></div>}
-          <p className="mt-7 text-center text-sm text-muted-foreground">{mode === "login" ? "Need an account?" : "Already have an account?"} <button className="font-semibold text-brand hover:underline" onClick={() => changeMode(mode === "login" ? "register" : "login")}>{mode === "login" ? "Register school" : "Sign in"}</button></p>
-          <p className="mt-8 text-center text-[11px] text-muted-foreground">UI demonstration only · No information is saved</p>
-        </div>
-      </section>
+            {mode === "login" && <button className="auth-demo-button" onClick={() => { setEmail("admin@aurora.edu"); setPassword("Aurora@2026"); }}><span><strong>Demo account</strong><small>Fill example credentials</small></span><span>Use demo</span></button>}
+            <div className="auth-disclosure"><ShieldCheck className="mt-0.5 size-4 shrink-0" /><p>This is a UI demonstration. No account information is saved.</p></div>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }
