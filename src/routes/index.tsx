@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   Bell, BookOpen, CalendarDays, ChevronDown, CircleDollarSign, ClipboardCheck,
   GraduationCap, LayoutDashboard, Menu, MoreHorizontal, Plus, Search, Settings,
-  Users, X, FileText, Clock3, Download, Filter, CheckCircle2,
+  Users, X, FileText, Clock3, Download, Filter, CheckCircle2, Eye, EyeOff,
+  ArrowRight, LogOut, Mail, LockKeyhole, ShieldCheck, UserPlus,
 } from "lucide-react";
-import { useMemo, useState, type ComponentType } from "react";
+import { useMemo, useState, type ComponentType, type FormEvent } from "react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -61,19 +62,31 @@ const teachers = [
 
 function Index() {
   const [role, setRole] = useState<Role>("Admin");
+  const [signedIn, setSignedIn] = useState(false);
   const [page, setPage] = useState("Dashboard");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [dialog, setDialog] = useState<string | null>(null);
   const menus = roleMenus[role];
-  const switchRole = (next: Role) => { setRole(next); setPage("Dashboard"); };
+  const enterWorkspace = (email: string) => {
+    const nextRole: Role = email.toLowerCase().startsWith("teacher")
+      ? "Teacher"
+      : email.toLowerCase().startsWith("student")
+        ? "Student"
+        : "Admin";
+    setRole(nextRole);
+    setPage("Dashboard");
+    setSignedIn(true);
+  };
+
+  if (!signedIn) return <AuthPage onEnter={enterWorkspace} />;
 
   return (
     <div className="app-shell min-h-screen font-body text-foreground">
       <div className="ambient ambient-one" /><div className="ambient ambient-two" /><div className="ambient ambient-three" />
       <div className="relative flex min-h-screen">
-        <Sidebar role={role} page={page} menus={menus} open={mobileOpen} onClose={() => setMobileOpen(false)} onSelect={(label) => { setPage(label); setMobileOpen(false); }} />
-        <main className="min-w-0 flex-1 p-3 sm:p-5 lg:p-7">
+        <Sidebar role={role} page={page} menus={menus} open={mobileOpen} onClose={() => setMobileOpen(false)} onSelect={(label) => { setPage(label); setMobileOpen(false); }} onSignOut={() => setSignedIn(false)} />
+        <main className="min-w-0 flex-1 p-3 sm:p-5 md:ml-64 lg:p-7">
           <header className="glass-panel flex h-16 items-center gap-3 rounded-2xl px-3 sm:px-5">
             <button aria-label="Open navigation" className="icon-button md:hidden" onClick={() => setMobileOpen(true)}><Menu className="size-5" /></button>
             <div className="min-w-0">
@@ -84,9 +97,6 @@ function Index() {
               <Search className="size-4 text-muted-foreground" />
               <input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder="Search students, fees…" />
             </label>
-            <div className="hidden items-center rounded-lg border border-glass-border bg-surface/55 p-1 sm:flex">
-              {(["Admin", "Teacher", "Student"] as Role[]).map((item) => <button key={item} onClick={() => switchRole(item)} className={`role-tab ${role === item ? "role-tab-active" : ""}`}>{item}</button>)}
-            </div>
             <button aria-label="Notifications" className="icon-button relative"><Bell className="size-4" /><span className="notification-dot" /></button>
             <div className="avatar">{role === "Student" ? "AM" : role === "Teacher" ? "AR" : "EV"}</div>
           </header>
@@ -100,10 +110,94 @@ function Index() {
   );
 }
 
-function Sidebar({ role, page, menus, open, onClose, onSelect }: { role: Role; page: string; menus: NavItem[]; open: boolean; onClose: () => void; onSelect: (page: string) => void }) {
+type AuthMode = "login" | "register";
+
+function AuthPage({ onEnter }: { onEnter: (email: string) => void }) {
+  const [mode, setMode] = useState<AuthMode>("login");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [email, setEmail] = useState("admin@aurora.edu");
+  const [password, setPassword] = useState("Aurora@2026");
+
+  const changeMode = (next: AuthMode) => {
+    setMode(next);
+    setError("");
+    setEmail(next === "login" ? "admin@aurora.edu" : "");
+    setPassword(next === "login" ? "Aurora@2026" : "");
+  };
+
+  const submit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const formEmail = String(data.get("email") ?? "").trim().toLowerCase();
+    const formPassword = String(data.get("password") ?? "");
+    const fullName = String(data.get("fullName") ?? "").trim();
+    const schoolName = String(data.get("schoolName") ?? "").trim();
+    if (!formEmail || !formEmail.includes("@")) return setError("Enter a valid email address.");
+    if (formPassword.length < 8) return setError("Password must be at least 8 characters.");
+    if (mode === "register" && (fullName.length < 2 || schoolName.length < 2)) return setError("Complete your name and school name.");
+    setError("");
+    setLoading(true);
+    window.setTimeout(() => {
+      setLoading(false);
+      onEnter(formEmail);
+    }, 650);
+  };
+
+  return (
+    <main className="auth-shell min-h-screen font-body text-foreground">
+      <div className="ambient ambient-one" /><div className="ambient ambient-two" /><div className="ambient ambient-three" />
+      <section className="auth-story">
+        <div className="relative z-10 max-w-xl">
+          <div className="flex items-center gap-3"><div className="brand-mark">A</div><div><p className="font-display text-lg font-bold">Aurora UMS</p><p className="text-[10px] font-semibold uppercase text-muted-foreground">Academy OS</p></div></div>
+          <div className="mt-16 sm:mt-24">
+            <span className="auth-kicker"><ShieldCheck className="size-4" /> A clearer school day</span>
+            <h1 className="mt-5 font-display text-4xl font-bold leading-tight sm:text-5xl">One calm place for your whole school.</h1>
+            <p className="mt-5 max-w-lg text-base leading-7 text-muted-foreground">Attendance, classes, fees, results, and notices—organized for every school day.</p>
+          </div>
+          <div className="mt-12 grid grid-cols-3 gap-3">
+            {[['1,284', 'Students'], ['64', 'Teachers'], ['94.2%', 'Attendance']].map(([value, label]) => <div className="auth-metric" key={label}><strong>{value}</strong><span>{label}</span></div>)}
+          </div>
+        </div>
+        <p className="relative z-10 text-xs text-muted-foreground">Aurora Academy · Academic year 2026–27</p>
+      </section>
+
+      <section className="auth-form-wrap">
+        <div className="w-full max-w-md">
+          <div className="mb-8 lg:hidden"><div className="flex items-center gap-3"><div className="brand-mark">A</div><p className="font-display text-lg font-bold">Aurora UMS</p></div></div>
+          <div className="mb-7">
+            <p className="text-sm font-semibold text-brand">{mode === "login" ? "Welcome back" : "Start your workspace"}</p>
+            <h2 className="mt-2 font-display text-3xl font-bold">{mode === "login" ? "Sign in to Aurora" : "Create your account"}</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{mode === "login" ? "Use your school-issued account to continue." : "Create an administrator demo account for your school."}</p>
+          </div>
+
+          <form onSubmit={submit} className="space-y-4" noValidate>
+            {mode === "register" && <div className="grid gap-4 sm:grid-cols-2"><AuthField label="Full name" name="fullName" placeholder="Vansham Kamboj" autoComplete="name" /><AuthField label="School name" name="schoolName" placeholder="Aurora Academy" autoComplete="organization" /></div>}
+            <AuthField label="Email address" name="email" type="email" value={email} onChange={setEmail} placeholder="you@school.edu" autoComplete="email" icon={Mail} />
+            <label className="block"><span className="mb-2 block text-xs font-semibold">Password</span><span className="auth-input-wrap"><LockKeyhole className="size-4 text-muted-foreground" /><input name="password" value={password} onChange={(event) => setPassword(event.target.value)} type={showPassword ? "text" : "password"} className="auth-input" placeholder="At least 8 characters" autoComplete={mode === "login" ? "current-password" : "new-password"} maxLength={72} /><button type="button" className="icon-button -mr-2" onClick={() => setShowPassword((shown) => !shown)} aria-label={showPassword ? "Hide password" : "Show password"}>{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button></span></label>
+            {mode === "register" && <label className="flex items-start gap-2 text-xs leading-5 text-muted-foreground"><input required type="checkbox" className="mt-1 accent-[var(--brand)]" />I agree to the school data and acceptable use terms.</label>}
+            {error && <p role="alert" className="auth-error">{error}</p>}
+            <button className="primary-button auth-submit w-full" disabled={loading}>{loading ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}<ArrowRight className="size-4" /></button>
+          </form>
+
+          {mode === "login" && <div className="demo-credentials"><div><p className="text-xs font-semibold">Demo account</p><p className="mt-1 text-xs text-muted-foreground">admin@aurora.edu · Aurora@2026</p></div><button className="secondary-button" onClick={() => { setEmail("admin@aurora.edu"); setPassword("Aurora@2026"); }}>Use demo</button></div>}
+          <p className="mt-7 text-center text-sm text-muted-foreground">{mode === "login" ? "Need an account?" : "Already have an account?"} <button className="font-semibold text-brand hover:underline" onClick={() => changeMode(mode === "login" ? "register" : "login")}>{mode === "login" ? "Register school" : "Sign in"}</button></p>
+          <p className="mt-8 text-center text-[11px] text-muted-foreground">UI demonstration only · No information is saved</p>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function AuthField({ label, name, type = "text", value, onChange, placeholder, autoComplete, icon: FieldIcon }: { label: string; name: string; type?: string; value?: string; onChange?: (value: string) => void; placeholder: string; autoComplete: string; icon?: Icon }) {
+  return <label className="block"><span className="mb-2 block text-xs font-semibold">{label}</span><span className="auth-input-wrap">{FieldIcon && <FieldIcon className="size-4 text-muted-foreground" />}<input name={name} type={type} value={value} onChange={onChange ? (event) => onChange(event.target.value) : undefined} className="auth-input" placeholder={placeholder} autoComplete={autoComplete} maxLength={type === "email" ? 255 : 100} /></span></label>;
+}
+
+function Sidebar({ role, page, menus, open, onClose, onSelect, onSignOut }: { role: Role; page: string; menus: NavItem[]; open: boolean; onClose: () => void; onSelect: (page: string) => void; onSignOut: () => void }) {
   return <>
     {open && <button aria-label="Close navigation overlay" className="fixed inset-0 z-30 bg-overlay md:hidden" onClick={onClose} />}
-    <aside className={`glass-sidebar fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col p-4 transition-transform md:sticky md:top-0 md:h-screen md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
+    <aside className={`glass-sidebar fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col overflow-y-auto p-4 transition-transform md:translate-x-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
       <div className="flex items-center gap-3 px-2 pb-5 pt-1">
         <div className="brand-mark">A</div><div><p className="font-display text-[15px] font-bold leading-none">Aurora UMS</p><p className="mt-1 text-[10px] font-semibold uppercase text-muted-foreground">Academy OS</p></div>
         <button aria-label="Close navigation" onClick={onClose} className="icon-button ml-auto md:hidden"><X className="size-4" /></button>
@@ -113,7 +207,7 @@ function Sidebar({ role, page, menus, open, onClose, onSelect }: { role: Role; p
         {menus.map(({ label, icon: ItemIcon }) => <button key={label} onClick={() => onSelect(label)} className={`nav-item ${page === label ? "nav-item-active" : ""}`}><ItemIcon className="size-4" /><span>{label}</span>{label === "Notices" && <span className="ml-auto rounded-full bg-brand/10 px-2 text-[10px] text-brand">3</span>}</button>)}
       </nav>
       <div className="glass-subtle mt-auto rounded-xl p-3">
-        <div className="flex items-center gap-2"><div className="mini-avatar">{role.slice(0, 1)}</div><div><p className="text-xs font-semibold">{role} workspace</p><p className="text-[11px] text-muted-foreground">Term 1 · Week 8</p></div><ChevronDown className="ml-auto size-4 text-muted-foreground" /></div>
+        <div className="flex items-center gap-2"><div className="mini-avatar">{role.slice(0, 1)}</div><div className="min-w-0"><p className="truncate text-xs font-semibold">{role} workspace</p><p className="text-[11px] text-muted-foreground">Term 1 · Week 8</p></div><button className="icon-button ml-auto" onClick={onSignOut} aria-label="Sign out" title="Sign out"><LogOut className="size-4" /></button></div>
       </div>
     </aside>
   </>;
